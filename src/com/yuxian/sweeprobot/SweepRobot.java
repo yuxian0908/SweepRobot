@@ -16,7 +16,7 @@ public class SweepRobot {
 	
 	public static int free = -2;
 	
-	public static int visited = -3;
+	public static int visited = 1;
 	
 	public static int minStep = 9;
 	
@@ -24,7 +24,7 @@ public class SweepRobot {
 	
 	public static int mazeWidth = 5;
 	
-	public static int totalCount = 27;
+	public static int totalCount = 0;
 	
 	public static boolean waited = false;
 	
@@ -210,6 +210,22 @@ public class SweepRobot {
 		}
 	}
 	
+	// find total count 
+	private static int findCountAndSetupVisited(int[][] maze) {
+		int count = 0;
+		for(int i=0; i<mazeHeight+2; i++) {
+			for(int j=0; j<mazeWidth+2; j++) {
+				if(maze[i][j]==free) {
+					count++;
+				}
+				if(maze[i][j]==barrier) {
+					visitedMaze[i][j] = visited;
+				}
+			}
+		}
+		return count;
+	}
+	
 	public static void main(String[] args) {
 		int[][] test = new int[mazeHeight+2][mazeWidth+2];
 		
@@ -229,10 +245,13 @@ public class SweepRobot {
 		
 		
 		// set up some other barrier
-		int[][] barriers = new int[][] { {1,2}, {2,3}, {3,5}, {5,6} };
+		int[][] barriers = new int[][] { {1,2}, {2,3}, {3,5}, {5,6}, {5,5}, {1,5}, {3,3}, {4,1}, {5,3}, {6,2} };
 		for(int i=0; i<barriers.length; i++) {
 			test[barriers[i][0]][barriers[i][1]] = barrier;
 		}
+		
+		// setup count
+		totalCount = findCountAndSetupVisited(test);
 		
 		for(int[] ary: test) {
 			System.out.println(Arrays.toString(ary));
@@ -240,21 +259,10 @@ public class SweepRobot {
 		
 		System.out.println("");
 		test[1][1] = start;
+		
 		findRoad(test, 1, 1);
-	
-//		for(int[] ary: test) {
-//			System.out.println(Arrays.toString(ary));
-//		}
-		
 		sweepAll(test,1,1);
-		
-		for(int[] ary: visitedMaze) {
-			System.out.println(Arrays.toString(ary));
-		}	
-		System.out.println("");
-		for(int[] ary: test) {
-			System.out.println(Arrays.toString(ary));
-		}
+
 	}
 	
 	
@@ -266,18 +274,13 @@ public class SweepRobot {
 			System.out.println(Arrays.toString(ary));
 		}
 		System.out.println("");
-//		for(int[] ary: maze) {
-//			System.out.println(Arrays.toString(ary));
-//		}
+		System.out.println("=========================");
 		try {
-			TimeUnit.NANOSECONDS.sleep(150000000);
+			TimeUnit.NANOSECONDS.sleep(100000000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-//		
-//		System.out.println("=========================");
-//		System.out.println("");
 	}
 
 	public static void DebugWaitedRoad() {
