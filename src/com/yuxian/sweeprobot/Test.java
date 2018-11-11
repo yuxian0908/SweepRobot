@@ -110,7 +110,6 @@ public class Test {
 		if(prevNow[0]==now[0] && prevNow[1]==now[1]) {
 			for(int[] dir: directions) {
 				int next = maze[now[0]+dir[0]][now[1]+dir[1]];
-				int v = visitedMaze[now[0]+dir[0]][now[1]+dir[1]];
 				if(next == nowStep && next!=barrier) {
 					visitedMaze[now[0]+dir[0]][now[1]+dir[1]] = visited;
 					now[0] = now[0]+dir[0];
@@ -166,6 +165,10 @@ public class Test {
 		System.out.println("");
 		test[1][1] = start;
 		findRoad(test, 1, 1);
+	
+		for(int[] ary: test) {
+			System.out.println(Arrays.toString(ary));
+		}
 		sweepAll(test,1,1);
 //		sweep(test,2,1);
 //		
@@ -188,9 +191,9 @@ public class Test {
 			System.out.println(Arrays.toString(ary));
 		}
 		System.out.println("");
-		for(int[] ary: maze) {
-			System.out.println(Arrays.toString(ary));
-		}
+//		for(int[] ary: maze) {
+//			System.out.println(Arrays.toString(ary));
+//		}
 		try {
 			TimeUnit.SECONDS.sleep(1);
 		} catch (InterruptedException e) {
