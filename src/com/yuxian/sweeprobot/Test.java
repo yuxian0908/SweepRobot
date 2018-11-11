@@ -1,6 +1,8 @@
 package com.yuxian.sweeprobot;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
 public class Test {
@@ -16,13 +18,19 @@ public class Test {
 	
 	public static int visited = -3;
 	
-	public static int minStep = 8;
+	public static int minStep = 9;
 	
 	public static int mazeHeight = 6;
 	
 	public static int mazeWidth = 5;
 	
-	public static int totalCount = 20;
+	public static int totalCount = 28;
+	
+	public static boolean waited = false;
+	
+	public static boolean hold = false;
+	
+	public static Stack<int[]> waitedRoad = new Stack<>();
 
 	public static int[][] visitedMaze = new int[mazeHeight+2][mazeWidth+2];
 	
@@ -46,7 +54,7 @@ public class Test {
 		}
 	}
 	
-	public static int[] sweep(int[][] maze, int row, int col, int prev) {
+	private static int[] sweep(int[][] maze, int row, int col, int prev) {
 		// psuedo code
 		/*
 		 * prevNow = now
@@ -79,46 +87,72 @@ public class Test {
 		int[] prevNow = new int[] {row,col};
 		int nowStep = maze[now[0]][now[1]];
 		int prevStep = nowStep;
+		int nextStep = nowStep;
 		boolean hasNext = false;
 		
-		if(nowStep < minStep) {
-			for(int[] dir: directions) {
-				if(maze[now[0]+dir[0]][now[1]+dir[1]] == maze[now[0]][now[1]]+1) {
-					hasNext = true;
+		if(!waited) {
+			if(nowStep < minStep) {
+				for(int[] dir: directions) {
+					if(maze[now[0]+dir[0]][now[1]+dir[1]] == maze[now[0]][now[1]]+1) {
+						hasNext = true;
+					}
 				}
 			}
-		}
-		
-		if(nowStep>=minStep || !hasNext || prev>nowStep) {
-			nowStep--;
-		}else {
-			nowStep++;
-		}
-
-		for(int[] dir: directions) {
-			int next = maze[now[0]+dir[0]][now[1]+dir[1]];
-			int v = visitedMaze[now[0]+dir[0]][now[1]+dir[1]];
-			if(next == nowStep && next!=barrier && v!=visited) {
-				visitedMaze[now[0]+dir[0]][now[1]+dir[1]] = visited;
-				now[0] = now[0]+dir[0];
-				now[1] = now[1]+dir[1];
-				totalCount--;
-				break;
+			
+			if(nowStep>=minStep || !hasNext || prev>nowStep) {
+				nextStep--;
+				for(int[] dir: directions) {
+					int next = maze[now[0]+dir[0]][now[1]+dir[1]];
+					int v = visitedMaze[now[0]+dir[0]][now[1]+dir[1]];
+					if(nextStep<nowStep && next>nowStep && v!=visited ) {
+						if(!hold) {
+							System.out.println("hold");
+							waitedRoad.add(new int[] {now[0]+dir[0],now[1]+dir[1]});
+							waitedRoad.add(new int[] {now[0],now[1]});
+						}
+						hold = true;
+					}
+				}
+			}else {
+				nextStep++;
 			}
-		}
-		
-		if(prevNow[0]==now[0] && prevNow[1]==now[1]) {
+
 			for(int[] dir: directions) {
 				int next = maze[now[0]+dir[0]][now[1]+dir[1]];
-				if(next == nowStep && next!=barrier) {
+				int v = visitedMaze[now[0]+dir[0]][now[1]+dir[1]];
+				if(next == nextStep && next!=barrier && v!=visited) {
 					visitedMaze[now[0]+dir[0]][now[1]+dir[1]] = visited;
 					now[0] = now[0]+dir[0];
 					now[1] = now[1]+dir[1];
+					totalCount--;
 					break;
 				}
 			}
+			
+			if(prevNow[0]==now[0] && prevNow[1]==now[1]) {
+				for(int[] dir: directions) {
+					int next = maze[now[0]+dir[0]][now[1]+dir[1]];
+					if(next == nextStep && next!=barrier) {
+						visitedMaze[now[0]+dir[0]][now[1]+dir[1]] = visited;
+						now[0] = now[0]+dir[0];
+						now[1] = now[1]+dir[1];
+						break;
+					}
+				}
+			}
+		}else {
+			DebugWaitedRoad();
+			if(!waitedRoad.isEmpty()) {
+				int[] road = waitedRoad.pop();
+				now[0] = road[0];
+				now[1] = road[1];
+			}
+			if(waitedRoad.size()==1) {
+				waited = false;
+			}
 		}
 		
+
 		return new int[] {now[0], now[1], prevStep};
 	}
 	
@@ -129,9 +163,25 @@ public class Test {
 			now[0] = next[0];
 			now[1] = next[1];
 			now[2] = next[2];
-			DebugTest(maze);
+			if(hold) {
+				if(now[0]==row && now[1]==col) {
+					waited = true;
+					hold = false;
+				}else {
+					waitedRoad.add(new int[] {now[0],now[1]});
+				}
+			}
+			if(now[0]==row && now[1]==col)
+				shiftDir();
 			System.out.println(Arrays.toString(now));
+			DebugTest(maze);
 		}
+	}
+
+	public static void shiftDir() {
+		int[] temp = directions[0];
+		directions[0] = directions[1];
+		directions[1] = temp;
 	}
 	
 	public static void main(String[] args) {
@@ -183,6 +233,7 @@ public class Test {
 		}
 	}
 	
+	
 	public static void DebugTest(int[][] maze) {
 
 		
@@ -195,7 +246,7 @@ public class Test {
 //			System.out.println(Arrays.toString(ary));
 //		}
 		try {
-			TimeUnit.SECONDS.sleep(1);
+			TimeUnit.NANOSECONDS.sleep(500000000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -203,5 +254,13 @@ public class Test {
 		
 		System.out.println("=========================");
 		System.out.println("");
+	}
+
+	public static void DebugWaitedRoad() {
+		ArrayList<int[]> list = new ArrayList<int[]>(waitedRoad);
+		
+		for(int i=0; i<list.size(); i++) {
+			System.out.println(Arrays.toString(list.get(i)));
+		}
 	}
 }
