@@ -1,3 +1,4 @@
+
 package com.yuxian.sweeprobot;
 
 import java.util.ArrayList;
@@ -7,7 +8,7 @@ import java.util.Queue;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
-public class SweepRobot2 {
+public class SweepRobot3 {
 	
 	// [up, right, down, left]
 	public static int[][] directions = new int[][] {{-1,0},{0,1},{0,-1},{1,0}};
@@ -20,31 +21,27 @@ public class SweepRobot2 {
 	
 	public static int visited = 1;
 	
-	public static int counted = 1;
+	public static int maxStep = 9;
 	
-	public static int minStep = 9;
+	public static int mazeHeight = 10;
 	
-	public static int mazeHeight = 5;
-	
-	public static int mazeWidth = 5;
+	public static int mazeWidth = 10;
 	
 	public static int totalCount = 0;
 	
-	public static int entryRow = 3;
+	public static int entryRow = 5;
 	
-	public static int entryCol = 1;
+	public static int entryCol = 3;
 	
 	public static Stack<int[]> thisRoad = new Stack<>();
 	
-	public static Queue<int[]> tempRoad = new LinkedList<>();
-	
-	public static Queue<int[]> waitedRoad = new LinkedList<>();
+	public static Stack<int[]> waitedRoad = new Stack<>();
 	
 	public static boolean hasWaitedRoad = false;
 
 	public static boolean holdRoad = false;
 
-	public static int[][][] visitedMaze = new int[mazeHeight+2][mazeWidth+2][2];
+	public static int[][] visitedMaze = new int[mazeHeight+2][mazeWidth+2];
 	
 	// calculate the distance from entry
  	public static void findRoad(int[][] maze, int row, int col) {
@@ -61,106 +58,35 @@ public class SweepRobot2 {
 	
  	// sweep next road
 	private static int[] sweep(int[][] maze, int row, int col, int prev) {
-		// psuedo code
-		/*
-		 * if(!hasWaitedRoad){
-			 * hasNext = true
-			 * nowStep
-			 * nextStep
-			 * 
-			 * <--- check what is next step --->
-			 * if(nowStep<minStep and nowStep>prev){
-			 * 		for dir in directions{
-			 * 			if there is next then 
-			 * 				set hasNext to true
-			 * 			if there is more then two next then 
-			 * 				store the second to waitedRoad and store tempRoad to waitedRoad too
-			 * 				set hasWaitedRoad to true
-			 * 		}
-			 * }else{
-			 * 		hasNext = false
-			 * }
-			 * 
-			 * <--- go next step --->
-			 * if(hasNext){
-			 *		nextStep = nowStep + 1 
-			 *		check all dir and go next
-			 *		thisRoad.push(dir)
-			 *		if(!hasWaitedRoad){
-			 *			tempRoad.push(dir)
-			 *		}
-			 * }else{
-			 * 		thisRoad.pop()
-			 * }
-		 * }else{
-		 * 		if(!waitedRoad.isEmpty){
-		 * 			waitedRoad.pop()
-		 * 		}
-		 * 		if(watedRoad.isEmpty()){
-		 * 			hasWaitedRoad = false
-		 * 		}
-		 * }
-		 * 
-		 * */
 
 		boolean hasNext = false;
 		int nowStep = maze[row][col];
 		int nextStep = 0;
 		int[] now = new int[] {row,col};
 		int[] next = new int[] {row,col,prev};
-		
+
+		System.out.println(Arrays.toString(now));
+		System.out.println(nowStep+"\t"+prev);
 		System.out.println("waitedRoad: ");
-		DebugQueue(waitedRoad);
-		System.out.println("tempRoad: ");
-		DebugQueue(tempRoad);
+		DebugStack(waitedRoad);
 		System.out.println("thisRoad: ");
 		DebugStack(thisRoad);
+		DebugTest(maze);
 		if(!hasWaitedRoad) {
 			// <--- check what is next step --->
-			if(nowStep<minStep && (nowStep>prev || nowStep==0)) {
-				int countNext = 0;
-				int countVisited = 0;
+			if(nowStep<maxStep && (nowStep>=prev || nowStep==0)) {
 				// check is there any unvisited road
 				for(int[] dir: directions) {
 					int nRow = now[0]+dir[0];
 					int nCol = now[1]+dir[1];
-					if(maze[nRow][nCol]==maze[row][col]+1 && visitedMaze[nRow][nCol][1]!=visited) {
-						if(!holdRoad) {
-							if(countNext==1) {
-//								System.out.println("hold");
-								while(!tempRoad.isEmpty()) {
-									waitedRoad.offer(tempRoad.poll());
-								}
-								waitedRoad.offer(new int[] {row,col});
-								waitedRoad.offer(new int[] {nRow,nCol});
-								holdRoad = true;
-								break;
-							}
-							hasNext = true;
-							if(visitedMaze[nRow][nCol][1]!=counted) {
-								countNext++;
-							}
-						}else {
-							hasNext = true;
-							break;
-						}
-					}
-					if(visitedMaze[nRow][nCol][1]==visited) {
-						countVisited++;
-					}
-				}
-//				System.out.println(countVisited);
-				if(countVisited==directions.length) {
-					hasNext = true;
-					if(entryRow==row && entryCol==col) {
-						visited++;
+					if(maze[nRow][nCol]==maze[row][col]+1 && visitedMaze[nRow][nCol]!=visited) {
+						hasNext = true;
+						break;
 					}
 				}
 			}
 			
 			//<--- go next step --->
-			System.out.println(Arrays.toString(now));
-			System.out.println(nowStep+"\t"+prev);
 			System.out.println(hasNext);
 			if(hasNext) {
 				nextStep = nowStep + 1;
@@ -171,100 +97,80 @@ public class SweepRobot2 {
 				for(int[] dir: directions) {
 					nRow = now[0]+dir[0];
 					nCol = now[1]+dir[1];
-					System.out.println("test");
-					if(maze[nRow][nCol]==nextStep && visitedMaze[nRow][nCol][0]!=visited) {
+					if(maze[nRow][nCol]==nextStep && visitedMaze[nRow][nCol]!=visited) {
 						next[0] = nRow;
 						next[1] = nCol;
 						next[2] = nowStep;
-						visitedMaze[nRow][nCol][0] = visited;
-						visitedMaze[nRow][nCol][1] = counted;
-						if(visitedMaze[nRow][nCol][1]!=counted) {
-							totalCount--;
-						}
+						visitedMaze[nRow][nCol] = visited;
+						totalCount--;
 						break;
 					}
 				}
-				// check second priority which has next one and visited
-				if(next[0]==now[0] && next[1]==now[1]) {
-					for(int[] dir: directions) {
-						nRow = now[0]+dir[0];
-						nCol = now[1]+dir[1];
-						if(maze[nRow][nCol]==nextStep && visitedMaze[nRow][nCol][0]==visited) {
-							next[0] = nRow;
-							next[1] = nCol;
-							next[2] = nowStep;
-							break;
-						}
-					}
-				}
-				
-				// if you can not find next one now then it means you don't have one
-				if(next[0]==now[0] && next[1]==now[1]) {
-					hasNext = false;
-				}else {
-					thisRoad.push(new int[] {row,col});
-					if(!holdRoad) {
-						tempRoad.offer(new int[] {row,col});
-					}
-				}
+				thisRoad.push(new int[] {row,col});
 			}
 			if(!hasNext){
 				int[] road = thisRoad.pop();
 				next[0] = road[0];
 				next[1] = road[1];
 				next[2] = nowStep;
-				visitedMaze[road[0]][road[1]][0] = visited;
-				visitedMaze[road[0]][road[1]][1] = counted;
+				visitedMaze[road[0]][road[1]] = visited;
+				if(!holdRoad) {
+					for(int[] dir: directions) {
+						int nRow = now[0]+dir[0];
+						int nCol = now[1]+dir[1];
+						if(maze[nRow][nCol]==maze[row][col]+1 && visitedMaze[nRow][nCol]!=visited) {
+							if(nRow!=road[0] || nCol!=road[1]) {
+								waitedRoad.clear();
+								waitedRoad.push(new int[] {nRow, nCol});
+								waitedRoad.push(new int[] {row, col});
+								holdRoad = true;
+							}
+						}
+					}
+				}
+				waitedRoad.push(new int[] {road[0], road[1]});
+				
 			}
 		}else {
 //			System.out.println("hasWaitedRoad");
-			if(!waitedRoad.isEmpty()) {
-				int[] road = waitedRoad.poll();
-				next[0] = road[0];
-				next[1] = road[1];
-				next[2] = nowStep;
-				visitedMaze[road[0]][road[1]][0] = visited;
-				visitedMaze[road[0]][road[1]][1] = counted;
-				if(!waitedRoad.isEmpty()) {
-					thisRoad.push(new int[] {road[0],road[1]});
-					tempRoad.offer(new int[] {road[0],road[1]});
-				}else if(visitedMaze[road[0]][road[1]][1]!=counted){
-					totalCount--;
-				}
-			}
 			if(waitedRoad.isEmpty()) {
 				hasWaitedRoad = false;
 			}
+			if(!waitedRoad.isEmpty()) {
+				int[] road = waitedRoad.pop();
+				next[0] = road[0];
+				next[1] = road[1];
+				next[2] = nowStep;
+				visitedMaze[road[0]][road[1]] = visited;
+				if(!waitedRoad.isEmpty()) {
+					thisRoad.push(new int[] {road[0],road[1]});
+				}else {
+					totalCount--;
+				}
+			}
+			
 		}
-		
+
+		System.out.println("=================");
 		return next;
 	}
 	
 	// sweep all road
 	public static void sweepAll(int[][] maze, int row, int col) {
 		int[] now = sweep(maze,row,col,-1);
-		visitedMaze[row][col][0] = visited;
+		visitedMaze[row][col] = visited;
 		totalCount--;
-		System.out.println("====================");
-		System.out.println(Arrays.toString(now));
-		DebugTest(maze);
 		while(now[0]!=row || now[1]!=col || totalCount>0){
 			int[] next = sweep(maze,now[0],now[1],now[2]);
 			now[0] = next[0];
 			now[1] = next[1];
 			now[2] = next[2];
-			System.out.println(Arrays.toString(now));
 			if(holdRoad) {
 				if(now[0]==row && now[1]==col) {
 					hasWaitedRoad = true;
 					holdRoad = false;
 				}
 			}
-//			if(!hasWaitedRoad && now[0]==row && now[1]==col) {
-//				tempRoad.clear();
-//			}
-			System.out.println(totalCount);
-			DebugTest(maze);
 		}
 	}
 	
@@ -277,8 +183,7 @@ public class SweepRobot2 {
 					count++;
 				}
 				if(maze[i][j]==barrier) {
-					visitedMaze[i][j][0] = visited;
-					visitedMaze[i][j][1] = counted;
+					visitedMaze[i][j] = visited;
 				}
 			}
 		}
@@ -336,18 +241,11 @@ public class SweepRobot2 {
 		
 		// for debug
 		System.out.println("");
-		for(int[][] ary: visitedMaze) {
-			ArrayList<Integer> inner = new ArrayList<>(); 
-			for(int[] a: ary) {
-				inner.add(a[0]);
-			}
-			System.out.println(inner.toString());
+		for(int[] ary: visitedMaze) {
+			System.out.println(Arrays.toString(ary));
 		}
-		
-		System.out.println("");
-		System.out.println("=========================");
 		try {
-			TimeUnit.NANOSECONDS.sleep(200000000);
+			TimeUnit.NANOSECONDS.sleep(10000000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
