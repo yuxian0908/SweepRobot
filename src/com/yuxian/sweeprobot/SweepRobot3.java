@@ -21,7 +21,7 @@ public class SweepRobot3 {
 	
 	public static int visited = 1;
 	
-	public static int maxStep = 9;
+	public static int maxStep = 10;
 	
 	public static int mazeHeight = 10;
 	
@@ -132,23 +132,45 @@ public class SweepRobot3 {
 				
 			}
 		}else {
-//			System.out.println("hasWaitedRoad");
-			if(waitedRoad.isEmpty()) {
-				hasWaitedRoad = false;
-			}
-			if(!waitedRoad.isEmpty()) {
-				int[] road = waitedRoad.pop();
+			// <--- check what is next step --->
+			if(nowStep<maxStep) {
+				if(waitedRoad.isEmpty()) {
+					hasWaitedRoad = false;
+				}
+				if(!waitedRoad.isEmpty()) {
+					int[] road = waitedRoad.pop();
+					next[0] = road[0];
+					next[1] = road[1];
+					next[2] = nowStep;
+					visitedMaze[road[0]][road[1]] = visited;
+					if(!waitedRoad.isEmpty()) {
+						thisRoad.push(new int[] {road[0],road[1]});
+					}else {
+						totalCount--;
+					}
+				}
+			}else {
+				int[] road = thisRoad.pop();
 				next[0] = road[0];
 				next[1] = road[1];
 				next[2] = nowStep;
 				visitedMaze[road[0]][road[1]] = visited;
-				if(!waitedRoad.isEmpty()) {
-					thisRoad.push(new int[] {road[0],road[1]});
-				}else {
-					totalCount--;
+				if(!holdRoad) {
+					for(int[] dir: directions) {
+						int nRow = now[0]+dir[0];
+						int nCol = now[1]+dir[1];
+						if(maze[nRow][nCol]==maze[row][col]+1 && visitedMaze[nRow][nCol]!=visited) {
+							if(nRow!=road[0] || nCol!=road[1]) {
+								waitedRoad.clear();
+								waitedRoad.push(new int[] {nRow, nCol});
+								waitedRoad.push(new int[] {row, col});
+								holdRoad = true;
+							}
+						}
+					}
 				}
+				waitedRoad.push(new int[] {road[0], road[1]});
 			}
-			
 		}
 
 		System.out.println("=================");
