@@ -179,7 +179,8 @@ public class SweepRobot {
 				visitedMaze[road[0]][road[1]] = visited;
 				now[0] = road[0];
 				now[1] = road[1];
-			}else{
+			}
+			if(waitedRoad.isEmpty()) {
 				waited = false;
 			}
 		}

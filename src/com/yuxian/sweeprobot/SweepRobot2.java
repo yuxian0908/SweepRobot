@@ -28,7 +28,7 @@ public class SweepRobot2 {
 	
 	public static int totalCount = 0;
 	
-	public static int entryRow = 1;
+	public static int entryRow = 3;
 	
 	public static int entryCol = 1;
 	
@@ -46,9 +46,9 @@ public class SweepRobot2 {
 	
 	// calculate the distance from entry
  	public static void findRoad(int[][] maze, int row, int col) {
-		for(int i=0; i<directions.length; i++) {
-			int rowMove = directions[i][0];
-			int colMove = directions[i][1];
+		for(int[] dir: directions) {
+			int rowMove = dir[0];
+			int colMove = dir[1];
 			int next = maze[row+rowMove][col+colMove];
 			if( next!=barrier && next!=start && (next>maze[row][col]+1 || next == free) ) {
 				maze[row+rowMove][col+colMove] = maze[row][col]+1;
@@ -107,12 +107,12 @@ public class SweepRobot2 {
 		int[] now = new int[] {row,col};
 		int[] next = new int[] {row,col,prev};
 		
-//		System.out.println("waitedRoad: ");
-//		DebugQueue(waitedRoad);
-//		System.out.println("tempRoad: ");
-//		DebugQueue(tempRoad);
-//		System.out.println("thisRoad: ");
-//		DebugStack(thisRoad);
+		System.out.println("waitedRoad: ");
+		DebugQueue(waitedRoad);
+		System.out.println("tempRoad: ");
+		DebugQueue(tempRoad);
+		System.out.println("thisRoad: ");
+		DebugStack(thisRoad);
 		if(!hasWaitedRoad) {
 			// <--- check what is next step --->
 			if(nowStep<minStep && (nowStep>prev || nowStep==0)) {
@@ -152,9 +152,9 @@ public class SweepRobot2 {
 			}
 			
 			//<--- go next step --->
-//			System.out.println(Arrays.toString(now));
-//			System.out.println(nowStep+"\t"+prev);
-//			System.out.println(hasNext);
+			System.out.println(Arrays.toString(now));
+			System.out.println(nowStep+"\t"+prev);
+			System.out.println(hasNext);
 			if(hasNext) {
 				nextStep = nowStep + 1;
 				int nRow = 0;
@@ -301,7 +301,7 @@ public class SweepRobot2 {
 		}
 		
 		System.out.println("");
-		test[1][1] = start;
+		test[entryRow][entryCol] = start;
 		
 		findRoad(test, entryRow, entryCol);
 		
@@ -325,7 +325,7 @@ public class SweepRobot2 {
 		System.out.println("");
 		System.out.println("=========================");
 		try {
-			TimeUnit.NANOSECONDS.sleep(200000000);
+			TimeUnit.NANOSECONDS.sleep(100000000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
