@@ -21,7 +21,7 @@ public class SweepRobot3 {
 	
 	public static int visited = 1;
 	
-	public static int maxStep = 7;
+	public static int maxStep = 10;
 	
 	public static int mazeHeight = 6;
 	
@@ -68,7 +68,7 @@ public class SweepRobot3 {
 		System.out.println(Arrays.toString(now));
 		if(!hasWaitedRoad) {
 			// <--- check what is next step --->
-			if(nowStep<maxStep && (nowStep>=prev || nowStep==0)) {
+			if(nowStep<maxStep/2 && (nowStep>=prev || nowStep==0)) {
 				// check is there any unvisited road
 				for(int[] dir: directions) {
 					int nRow = now[0]+dir[0];
@@ -104,7 +104,7 @@ public class SweepRobot3 {
 			
 		}else {
 			// <--- check what is next step --->
-			if(nowStep<maxStep) {
+			if(nowStep<maxStep/2) {
 				hasNext = true;
 				if(waitedRoad.isEmpty()) {
 					hasWaitedRoad = false;
