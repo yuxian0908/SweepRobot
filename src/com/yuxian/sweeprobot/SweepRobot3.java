@@ -1,6 +1,10 @@
 
 package com.yuxian.sweeprobot;
 
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -11,49 +15,60 @@ import java.util.concurrent.TimeUnit;
 public class SweepRobot3 {
 	
 	// [up, right, down, left]
-	public static int[][] directions = new int[][] {{-1,0},{0,1},{0,-1},{1,0}};
+	private static int[][] directions = new int[][] {{-1,0},{0,1},{0,-1},{1,0}};
 			
-	public static int barrier = -3;
+	private static int barrier = -3;
 	
-	public static int start = 0;
+	private static int start = 0;
 	
-	public static int free = -2;
+	private static int free = -2;
 	
-	public static int visited = 1;
+	private static int visited = 1;
 	
-	public static int maxStep = 10;
+	private static int maxStep = 0;
 	
-	public static int mazeHeight = 6;
+	private static int mazeHeight = 0;
 	
-	public static int mazeWidth = 6;
+	private static int mazeWidth = 0;
 	
-	public static int totalCount = 0;
+	private static int totalCount = 0;
 	
-	public static int entryRow = 5;
+	private static int countStep = 0;
 	
-	public static int entryCol = 3;
+	private static int entryRow = 0;
 	
-	public static Stack<int[]> thisRoad = new Stack<>();
+	private static int entryCol = 0;
 	
-	public static Stack<int[]> waitedRoad = new Stack<>();
+	private static Stack<int[]> thisRoad = new Stack<>();
 	
-	public static boolean hasWaitedRoad = false;
+	private static Stack<int[]> waitedRoad = new Stack<>();
+	
+	private static boolean hasWaitedRoad = false;
 
-	public static boolean holdRoad = false;
+	private static boolean holdRoad = false;
 
-	public static int[][] visitedMaze = new int[mazeHeight+2][mazeWidth+2];
+	private static int[][] visitedMaze = new int[0][0];
+	
+	private static int[][] maze = new int[0][0];
 	
 	// calculate the distance from entry
- 	public static void findRoad(int[][] maze, int row, int col) {
-		for(int[] dir: directions) {
-			int rowMove = dir[0];
-			int colMove = dir[1];
-			int next = maze[row+rowMove][col+colMove];
-			if( next!=barrier && next!=start && (next>maze[row][col]+1 || next == free) ) {
-				maze[row+rowMove][col+colMove] = maze[row][col]+1;
-				findRoad(maze,row+rowMove,col+colMove);
-			}
-		}
+ 	private static void findRoad(int[][] maze, int r, int c) {
+ 		Queue<int[]> store = new LinkedList<>();
+ 		store.offer(new int[] {r,c});
+ 		while(!store.isEmpty()) {
+ 			int[] temp = store.poll();
+ 			int row = temp[0];
+ 			int col = temp[1];
+ 			for(int[] dir: directions) {
+ 				int rowMove = dir[0];
+ 				int colMove = dir[1];
+ 				int next = maze[row+rowMove][col+colMove];
+ 				if( next!=barrier && next!=start && (next>maze[row][col]+1 || next == free)) {
+ 					maze[row+rowMove][col+colMove] = maze[row][col]+1;
+ 					store.offer(new int[] {row+rowMove,col+colMove});
+ 				}
+ 			}
+ 		}
 	}
 	
  	// sweep next road
@@ -64,8 +79,6 @@ public class SweepRobot3 {
 		int nextStep = 0;
 		int[] now = new int[] {row,col};
 		int[] next = new int[] {row,col,prev};
-		DebugTest(maze);
-		System.out.println(Arrays.toString(now));
 		if(!hasWaitedRoad) {
 			// <--- check what is next step --->
 			if(nowStep<maxStep/2 && (nowStep>=prev || nowStep==0)) {
@@ -153,11 +166,13 @@ public class SweepRobot3 {
 	}
 	
 	// sweep all road
-	public static void sweepAll(int[][] maze, int row, int col) {
+	private static void sweepAll(int[][] maze, int row, int col) {
 		int[] now = sweep(maze,row,col,-1);
 		visitedMaze[row][col] = visited;
 		totalCount--;
 		while(now[0]!=row || now[1]!=col || totalCount>0){
+			countStep++;
+			writeStep(Arrays.toString(new int[] {now[0],now[1]}));
 			int[] next = sweep(maze,now[0],now[1],now[2]);
 			now[0] = next[0];
 			now[1] = next[1];
@@ -169,10 +184,11 @@ public class SweepRobot3 {
 				}
 			}
 		}
+		writeStep( Integer.toString(countStep));
 	}
 	
 	// find total count 
-	private static int findCountAndSetupVisited(int[][] maze) {
+	private static int findCountAndSetupVisited(int[][] maze){
 		int count = 0;
 		for(int i=0; i<mazeHeight+2; i++) {
 			for(int j=0; j<mazeWidth+2; j++) {
@@ -187,55 +203,96 @@ public class SweepRobot3 {
 		return count;
 	}
 	
-	public static void main(String[] args) {
-		int[][] test = new int[mazeHeight+2][mazeWidth+2];
-		
-		
-		// set up maze
-		for(int i=0; i<mazeHeight+2; i++) {
-			for(int j=0; j<mazeWidth+2; j++)
-				test[i][j] = free;
-		}
-		
-		// set up side barrier
-		for(int i=0; i<mazeHeight+2; i++) {
-			for(int j=0; j<mazeWidth+2; j++)
-				if( (i==mazeHeight+1 || i==0) || (j==mazeWidth+1 || j==0) )
-					test[i][j] = barrier;
-		}
-		
-		
-		// set up some other barrier
-		int[][] barriers = new int[][] { {1,2}, {2,3}, {3,5}};
-		for(int i=0; i<barriers.length; i++) {
-			test[barriers[i][0]][barriers[i][1]] = barrier;
-		}
-		
-		
-		// setup count
-		totalCount = findCountAndSetupVisited(test);
-		
-		for(int[] ary: test) {
-			System.out.println(Arrays.toString(ary));
-		}
-		
-		System.out.println("");
-		test[entryRow][entryCol] = start;
-		
-		findRoad(test, entryRow, entryCol);
-		
+	private static void checkBattery(int[][] maze) throws Exception {
 
-		for(int[] ary: test) {
+		int minNeededStep = 0;
+		for(int i=0; i<mazeHeight+2; i++) {
+			for(int j=0; j<mazeWidth+2; j++) {
+				minNeededStep = Math.max(minNeededStep, maze[i][j]);
+			}
+		}
+		if(minNeededStep>maxStep/2) {
+			throw new Exception("battery is not enough");
+		}
+	}
+	
+	private static void writeStep(String step) {
+		try {
+			FileWriter fw = new FileWriter("output.txt", true);
+			fw.write(step+"\n");
+			fw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static void main(String[] args) {
+		
+		FileReader fr;
+		try {
+			fr = new FileReader("input.txt");
+			BufferedReader bufferedReader = new BufferedReader(fr);
+			String firstLine = bufferedReader.readLine();
+			System.out.println(firstLine);
+			String[] initAry = firstLine.split(" ");
+			mazeHeight = Integer.parseInt(initAry[0]);
+			mazeWidth = Integer.parseInt(initAry[1]);
+			maxStep = Integer.parseInt(initAry[2]);
+			maze = new int[mazeHeight+2][mazeWidth+2];
+			visitedMaze = new int[mazeHeight+2][mazeWidth+2];
+			// set up side barrier
+			for(int i=0; i<mazeHeight+2; i++) {
+				for(int j=0; j<mazeWidth+2; j++)
+					if( (i==mazeHeight+1 || i==0) || (j==mazeWidth+1 || j==0) )
+						maze[i][j] = barrier;
+			}
+			String in = "";
+			int row = 1;
+			while((in = bufferedReader.readLine())!=null) {
+				String[] inAry = in.split(" ");
+				for(int i=0; i<inAry.length; i++) {
+					if(inAry[i].equals("R")) {
+						entryRow = row;
+						entryCol = i+1;
+						maze[entryRow][entryCol] = start;
+					}
+					else if(inAry[i].equals("1")) maze[row][i+1] = barrier;
+					else if(inAry[i].equals("0")) maze[row][i+1] = free;
+				}
+				row++;
+			}
+	        fr.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		// setup count
+		totalCount = findCountAndSetupVisited(maze);
+		findRoad(maze, entryRow, entryCol);
+
+		// check if battery is enough 
+		try {
+			checkBattery(maze);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			return;
+		}		
+		
+		for(int[] ary: maze) {
 			System.out.println(Arrays.toString(ary));
 		}
-		sweepAll(test, entryRow, entryCol);
+		
+		// do main algorithm
+		sweepAll(maze, entryRow, entryCol);
 
 	}
 	
 	
+	
+	
+	
 	public static void DebugTest(int[][] maze) {
-
-		
 		// for debug
 		System.out.println("===================");
 		for(int[] ary: visitedMaze) {
@@ -243,7 +300,7 @@ public class SweepRobot3 {
 		}
 		System.out.println("");
 		try {
-			TimeUnit.NANOSECONDS.sleep(10000000);
+			TimeUnit.NANOSECONDS.sleep(1000000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
