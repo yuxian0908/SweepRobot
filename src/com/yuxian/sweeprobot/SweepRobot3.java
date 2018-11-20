@@ -33,8 +33,6 @@ public class SweepRobot3 {
 	
 	private static int totalCount = 0;
 	
-	private static int countStep = 0;
-	
 	private static int entryRow = 0;
 	
 	private static int entryCol = 0;
@@ -50,6 +48,8 @@ public class SweepRobot3 {
 	private static int[][] visitedMaze = new int[0][0];
 	
 	private static int[][] maze = new int[0][0];
+
+	private static Queue<int[]> stepRecord = new LinkedList<>();
 	
 	// calculate the distance from entry
  	private static void findRoad(int[][] maze, int r, int c) {
@@ -171,8 +171,7 @@ public class SweepRobot3 {
 		visitedMaze[row][col] = visited;
 		totalCount--;
 		while(now[0]!=row || now[1]!=col || totalCount>0){
-			countStep++;
-			writeStep(Arrays.toString(new int[] {now[0],now[1]}));
+			stepRecord.add(new int[] {now[0],now[1]});
 			int[] next = sweep(maze,now[0],now[1],now[2]);
 			now[0] = next[0];
 			now[1] = next[1];
@@ -184,7 +183,7 @@ public class SweepRobot3 {
 				}
 			}
 		}
-		writeStep( Integer.toString(countStep));
+		writeStep();
 	}
 	
 	// find total count 
@@ -216,10 +215,14 @@ public class SweepRobot3 {
 		}
 	}
 	
-	private static void writeStep(String step) {
+	private static void writeStep() {
 		try {
-			FileWriter fw = new FileWriter("output.txt", true);
-			fw.write(step+"\n");
+			FileWriter fw = new FileWriter("output.txt");
+			fw.write(stepRecord.size()+"\n");
+			while(!stepRecord.isEmpty()) {
+				int[] temp= stepRecord.poll();
+				fw.write(Arrays.toString(temp)+"\n");
+			}
 			fw.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -295,16 +298,16 @@ public class SweepRobot3 {
 	public static void DebugTest(int[][] maze) {
 		// for debug
 		System.out.println("===================");
-		for(int[] ary: visitedMaze) {
-			System.out.println(Arrays.toString(ary));
-		}
+//		for(int[] ary: visitedMaze) {
+//			System.out.println(Arrays.toString(ary));
+//		}
 		System.out.println("");
-		try {
-			TimeUnit.NANOSECONDS.sleep(1000000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			TimeUnit.NANOSECONDS.sleep(1000000);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 
 	public static void DebugStack(Stack stack) {
